@@ -1,8 +1,11 @@
 {
-  "name": "@.//source",
+  "name": "test_project",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "fe": "yarn nx dev client",
+    "be": "yarn nx serve server"
+  },
   "private": true,
   "dependencies": {
     "@nestjs/common": "^10.0.2",
