@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ReviewService } from './review.service';
 
 @Controller('review')
@@ -15,7 +15,7 @@ export class ReviewController {
     return this.reviewService.getPullRequestDiff(prNumber);
   }
 
-  @Post('pull-request/:id/review')
+  @Get('pull-request/:id/review')
   async reviewPullRequest(@Param('id') prNumber: string) {
     return this.reviewService.reviewAndCommentOnPR(prNumber);
   }
