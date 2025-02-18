@@ -30,22 +30,17 @@ export class ReviewService {
 
   async getPullRequestDiff(
     prNumber: string,
-    repoOwnerFromProps?: string,
-    repoNameFromProps?: string,
-    githubTokenFromProps?: string
+    repoOwner?: string,
+    repoName?: string,
+    githubToken?: string
   ) {
-    const repoOwnerFromEnv = this.configService.get('REPO_OWNER');
-    const repoNameFromEnv = this.configService.get('REPO_NAME');
-    const repoName = repoNameFromProps ?? repoNameFromEnv;
-    const repoOwner = repoOwnerFromProps ?? repoOwnerFromEnv;
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/pulls/${prNumber}`;
 
-    const githubToken =
-      githubTokenFromProps ?? this.configService.get('GITHUB_TOKEN');
     const headersToSent = {
       ...this.githubHeaders,
       Authorization: `Bearer ${githubToken}`,
     };
+
     const response = await this.http
       .get(url, { headers: headersToSent })
       .toPromise();
@@ -79,37 +74,60 @@ export class ReviewService {
         }
       )
       .toPromise();
-
+    console.log(response, 'response');
     return response.data.choices[0].message.content;
   }
 
-  async postCommentOnPR(prNumber: string, comment: string) {
-    const repoOwner = this.configService.get('REPO_OWNER');
-    const repoName = this.configService.get('REPO_NAME');
+  async postCommentOnPR(
+    prNumber: string,
+    comment: string,
+    repoName: string,
+    repoOwner: string,
+    gitHubToken: string
+  ) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/issues/${prNumber}/comments`;
-
+    console.log(url, 'url');
+    const headersToSent = {
+      ...this.githubHeaders,
+      Authorization: `Bearer ${gitHubToken}`,
+    };
     await this.http
-      .post(url, { body: comment }, { headers: this.githubHeaders })
+      .post(url, { body: comment }, { headers: headersToSent })
       .toPromise();
   }
 
   async reviewAndCommentOnPR(
     repoOwner: string,
     repoName: string,
-    prNumber: string
+    prNumber: string,
+    gitHubToken: string
   ) {
+    const repoOwnerToUse = repoOwner ?? this.configService.get('REPO_OWNER');
+    const repoNameToUse = repoName ?? this.configService.get('REPO_NAME');
+    const gitHubTokenToUse =
+      gitHubToken ?? this.configService.get('GITHUB_TOKEN');
+    console.log(repoOwnerToUse, 'repoOwnerToUse');
+    console.log(repoNameToUse, 'repoNameToUse');
+    console.log(gitHubTokenToUse, 'gitHubTokenToUse');
     const diffUrl = await this.getPullRequestDiff(
       prNumber,
-      repoOwner,
-      repoName
+      repoOwnerToUse,
+      repoNameToUse,
+      gitHubTokenToUse
     );
 
     if (!diffUrl) {
       return { message: 'No diff available for this PR' };
     }
 
+    const headersToSent = {
+      ...this.githubHeaders,
+      Authorization: `Bearer ${gitHubTokenToUse}`,
+    };
+    console.log(headersToSent, 'headersToSent');
+
     const diffResponse = await this.http
-      .get(diffUrl, { headers: this.githubHeaders })
+      .get(diffUrl, { headers: headersToSent })
       .toPromise();
     const codeDiff = `\`\`\`diff\n${diffResponse.data.slice(0, 52)}\n\`\`\``;
 
@@ -122,7 +140,13 @@ export class ReviewService {
       reviewComment = 'No significant issues found. 👍';
     }
 
-    await this.postCommentOnPR(prNumber, reviewComment);
+    await this.postCommentOnPR(
+      prNumber,
+      reviewComment,
+      repoOwnerToUse,
+      repoNameToUse,
+      gitHubTokenToUse
+    );
     return { message: `✅ Comment posted on PR #${prNumber}` };
   }
 }

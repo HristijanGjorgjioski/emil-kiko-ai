@@ -17,12 +17,19 @@ export class ReviewController {
 
   @Post('pull-request/:id/review')
   async reviewPullRequest(
-    @Body() body: { repoOwner: string; repoName: string; prNumber: string }
+    @Body()
+    body: {
+      repoOwner: string;
+      repoName: string;
+      prNumber: string;
+      gitHubToken: string;
+    }
   ) {
     return this.reviewService.reviewAndCommentOnPR(
       body.repoOwner,
       body.repoName,
-      body.prNumber
+      body.prNumber,
+      body.gitHubToken
     );
   }
 }

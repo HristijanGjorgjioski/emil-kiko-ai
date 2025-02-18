@@ -19,7 +19,7 @@ export async function reviewPullRequest(
   prNumber: string,
   gitHubToken: string
 ) {
-  return fetch(`${API_BASE_URL}/pull-request/review`, {
+  return fetch(`${API_BASE_URL}/pull-request/${prNumber}/review`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ repoOwner, repoName, prNumber, gitHubToken }),
