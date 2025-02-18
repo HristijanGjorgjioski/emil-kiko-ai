@@ -28,13 +28,26 @@ export class ReviewService {
     return response.data;
   }
 
-  async getPullRequestDiff(prNumber: string) {
-    const repoOwner = this.configService.get('REPO_OWNER');
-    const repoName = this.configService.get('REPO_NAME');
+  async getPullRequestDiff(
+    prNumber: string,
+    repoOwnerFromProps?: string,
+    repoNameFromProps?: string,
+    githubTokenFromProps?: string
+  ) {
+    const repoOwnerFromEnv = this.configService.get('REPO_OWNER');
+    const repoNameFromEnv = this.configService.get('REPO_NAME');
+    const repoName = repoNameFromProps ?? repoNameFromEnv;
+    const repoOwner = repoOwnerFromProps ?? repoOwnerFromEnv;
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/pulls/${prNumber}`;
 
+    const githubToken =
+      githubTokenFromProps ?? this.configService.get('GITHUB_TOKEN');
+    const headersToSent = {
+      ...this.githubHeaders,
+      Authorization: `Bearer ${githubToken}`,
+    };
     const response = await this.http
-      .get(url, { headers: this.githubHeaders })
+      .get(url, { headers: headersToSent })
       .toPromise();
     return response.data.diff_url;
   }
@@ -80,8 +93,16 @@ export class ReviewService {
       .toPromise();
   }
 
-  async reviewAndCommentOnPR(prNumber: string) {
-    const diffUrl = await this.getPullRequestDiff(prNumber);
+  async reviewAndCommentOnPR(
+    repoOwner: string,
+    repoName: string,
+    prNumber: string
+  ) {
+    const diffUrl = await this.getPullRequestDiff(
+      prNumber,
+      repoOwner,
+      repoName
+    );
 
     if (!diffUrl) {
       return { message: 'No diff available for this PR' };

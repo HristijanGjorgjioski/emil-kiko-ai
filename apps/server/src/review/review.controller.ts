@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ReviewService } from './review.service';
 
 @Controller('review')
@@ -15,8 +15,14 @@ export class ReviewController {
     return this.reviewService.getPullRequestDiff(prNumber);
   }
 
-  @Get('pull-request/:id/review')
-  async reviewPullRequest(@Param('id') prNumber: string) {
-    return this.reviewService.reviewAndCommentOnPR(prNumber);
+  @Post('pull-request/:id/review')
+  async reviewPullRequest(
+    @Body() body: { repoOwner: string; repoName: string; prNumber: string }
+  ) {
+    return this.reviewService.reviewAndCommentOnPR(
+      body.repoOwner,
+      body.repoName,
+      body.prNumber
+    );
   }
 }
