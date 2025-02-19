@@ -46,7 +46,6 @@ export default function ReviewForm() {
         value={repoOwner}
         onChange={(e) => setRepoOwner(e.target.value)}
         className="border p-2 rounded"
-        required
       />
       <input
         type="text"
@@ -54,7 +53,6 @@ export default function ReviewForm() {
         value={repoName}
         onChange={(e) => setRepoName(e.target.value)}
         className="border p-2 rounded"
-        required
       />
       <input
         type="number"
@@ -62,7 +60,6 @@ export default function ReviewForm() {
         value={prNumber}
         onChange={(e) => setPrNumber(e.target.value)}
         className="border p-2 rounded"
-        required
       />
       <input
         type="text"
@@ -70,7 +67,6 @@ export default function ReviewForm() {
         value={gitHubToken}
         onChange={(e) => setGitHubToken(e.target.value)}
         className="border p-2 rounded"
-        required
       />
       <button
         type="submit"
