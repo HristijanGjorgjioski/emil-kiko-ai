@@ -13,7 +13,7 @@ export class ReviewService {
       Authorization: `Bearer ${this.configService.get('GITHUB_TOKEN')}`,
       Accept: 'application/vnd.github.v3+json',
     };
-    this.aiApiKey = this.configService.get('AI_ML_API_KEY');
+    this.aiApiKey = this.configService.get('OPEN_AI_KEY');
     this.aiBaseUrl = 'https://api.aimlapi.com';
   }
 
@@ -48,23 +48,37 @@ export class ReviewService {
   }
 
   async analyzeCodeWithAI(codeDiff: string) {
-    const prompt = `Review the following code diff. Identify potential issues, suggest improvements, and point out any bad practices:\n\n\`\`\`diff\n${codeDiff}\n\`\`\``;
+    const prompt = `You are a senior software engineer reviewing a pull request code diff.  
+    Your task is to analyze the following code diff and provide a structured review, identifying:  
+    - 🛑 **Critical issues** (security risks, major bugs)  
+    - ⚠️ **Potential improvements** (performance optimizations, code structure, readability)  
+    - ✅ **Good practices** (things done well)  
+    
+    Please provide a **detailed** review with explanations and suggested fixes.  
+    At the end, **rate the overall code quality** from 1 to 10 based on best practices.  
+    
+    Here is the code diff to review:  
+    
+    \`\`\`diff  
+    ${codeDiff}  
+    \`\`\`
+    `;
 
     const response = await this.http
       .post(
-        `${this.aiBaseUrl}/v1/chat/completions`,
+        `https://api.openai.com/v1/chat/completions`,
         {
-          model: 'mistralai/Mistral-7B-Instruct-v0.2',
+          model: 'gpt-4',
           messages: [
             {
               role: 'system',
               content:
-                'You are a senior developer that have great code review skills.',
+                'You are a senior developer with excellent code review skills. Provide a detailed analysis of the code changes.',
             },
             { role: 'user', content: prompt },
           ],
-          temperature: 0.7,
-          max_tokens: 256,
+          temperature: 0.5,
+          max_tokens: 512,
         },
         {
           headers: {
@@ -74,7 +88,7 @@ export class ReviewService {
         }
       )
       .toPromise();
-    console.log(response, 'response');
+
     return response.data.choices[0].message.content;
   }
 
@@ -106,9 +120,7 @@ export class ReviewService {
     const repoNameToUse = repoName ?? this.configService.get('REPO_NAME');
     const gitHubTokenToUse =
       gitHubToken ?? this.configService.get('GITHUB_TOKEN');
-    console.log(repoOwnerToUse, 'repoOwnerToUse');
-    console.log(repoNameToUse, 'repoNameToUse');
-    console.log(gitHubTokenToUse, 'gitHubTokenToUse');
+
     const diffUrl = await this.getPullRequestDiff(
       prNumber,
       repoOwnerToUse,
@@ -124,12 +136,11 @@ export class ReviewService {
       ...this.githubHeaders,
       Authorization: `Bearer ${gitHubTokenToUse}`,
     };
-    console.log(headersToSent, 'headersToSent');
 
     const diffResponse = await this.http
       .get(diffUrl, { headers: headersToSent })
       .toPromise();
-    const codeDiff = `\`\`\`diff\n${diffResponse.data.slice(0, 52)}\n\`\`\``;
+    const codeDiff = `\`\`\`diff\n${diffResponse.data}\n\`\`\``;
 
     let reviewComment = await this.analyzeCodeWithAI(codeDiff);
     reviewComment = reviewComment.replace(codeDiff, '').trim();
@@ -143,8 +154,8 @@ export class ReviewService {
     await this.postCommentOnPR(
       prNumber,
       reviewComment,
-      repoOwnerToUse,
       repoNameToUse,
+      repoOwnerToUse,
       gitHubTokenToUse
     );
     return { message: `✅ Comment posted on PR #${prNumber}` };
