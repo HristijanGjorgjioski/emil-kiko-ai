@@ -1,0 +1,22 @@
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model Movie {
+  id        String   @id @default(uuid())
+  name      String
+  genre     String[] 
+  director  String
+  cast      String[] 
+  setting   String
+  plot      String
+  embedding Unsupported("vector(1536)")?
+}

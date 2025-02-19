@@ -4,7 +4,9 @@
   "license": "MIT",
   "scripts": {
     "fe": "yarn nx dev client",
-    "be": "yarn nx serve server"
+    "be": "yarn nx serve server",
+    "db:run": "docker compose up -d",
+    "db:migrate": "yarn prisma migrate dev"
   },
   "private": true,
   "dependencies": {
@@ -13,6 +15,7 @@
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^10.0.2",
     "@nestjs/platform-express": "^10.0.2",
+    "@prisma/client": "^6.4.0",
     "axios": "^1.7.9",
     "next": "~15.1.4",
     "openai": "^4.85.1",
@@ -62,6 +65,7 @@
     "jest-environment-node": "^29.7.0",
     "nx": "20.4.4",
     "prettier": "^2.6.2",
+    "prisma": "^6.4.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
