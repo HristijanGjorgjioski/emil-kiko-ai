@@ -68,7 +68,7 @@ export class ReviewService {
       .post(
         `https://api.openai.com/v1/chat/completions`,
         {
-          model: 'gpt-4', // Or 'gpt-3.5-turbo' if you want a cheaper option
+          model: 'gpt-4',
           messages: [
             {
               role: 'system',
