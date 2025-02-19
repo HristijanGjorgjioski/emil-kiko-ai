@@ -13,9 +13,7 @@ export class ReviewService {
       Authorization: `Bearer ${this.configService.get('GITHUB_TOKEN')}`,
       Accept: 'application/vnd.github.v3+json',
     };
-    this.aiApiKey =
-      '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';
-    // this.aiApiKey = this.configService.get('AI_ML_API_KEY');
+    this.aiApiKey = this.configService.get('OPEN_AI_KEY');
     this.aiBaseUrl = 'https://api.aimlapi.com';
   }
 
