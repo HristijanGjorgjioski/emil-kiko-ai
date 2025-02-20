@@ -36,10 +36,7 @@ export default function ReviewForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 max-w-md mx-auto p-4 border rounded-lg"
-    >
+    <div className="flex flex-col gap-4 max-w-md mx-auto p-4 border rounded-lg">
       <input
         type="text"
         placeholder="Repo Owner"
@@ -69,13 +66,13 @@ export default function ReviewForm() {
         className="border p-2 rounded"
       />
       <button
-        type="submit"
         className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
         disabled={loading}
+        onClick={handleSubmit}
       >
         {loading ? 'Submitting...' : 'Submit'}
       </button>
       {message && <p className="text-sm text-gray-700">{message}</p>}
-    </form>
+    </div>
   );
 }

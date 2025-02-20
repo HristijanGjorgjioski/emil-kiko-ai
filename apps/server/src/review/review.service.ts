@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config';
 export class ReviewService {
   private readonly githubHeaders;
   private readonly aiApiKey: string;
-  private readonly aiBaseUrl: string;
 
   constructor(private http: HttpService, private configService: ConfigService) {
     this.githubHeaders = {
@@ -14,7 +13,6 @@ export class ReviewService {
       Accept: 'application/vnd.github.v3+json',
     };
     this.aiApiKey = this.configService.get('OPEN_AI_KEY');
-    this.aiBaseUrl = 'https://api.aimlapi.com';
   }
 
   async fetchPullRequests() {
@@ -64,32 +62,36 @@ export class ReviewService {
     \`\`\`
     `;
 
-    const response = await this.http
-      .post(
-        `https://api.openai.com/v1/chat/completions`,
-        {
-          model: 'gpt-4',
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a senior developer with excellent code review skills. Provide a detailed analysis of the code changes.',
-            },
-            { role: 'user', content: prompt },
-          ],
-          temperature: 0.5,
-          max_tokens: 512,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.aiApiKey}`,
-            'Content-Type': 'application/json',
+    try {
+      const response = await this.http
+        .post(
+          `https://api.openai.com/v1/chat/completions`,
+          {
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are a senior developer with excellent code review skills. Provide a detailed analysis of the code changes.',
+              },
+              { role: 'user', content: prompt },
+            ],
+            temperature: 0.5,
+            max_tokens: 512,
           },
-        }
-      )
-      .toPromise();
+          {
+            headers: {
+              Authorization: `Bearer ${this.aiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+        .toPromise();
 
-    return response.data.choices[0].message.content;
+      return response.data.choices[0].message.content;
+    } catch (error) {
+      console.log('OpenAI API Error:', error.response?.data || error.message);
+    }
   }
 
   async postCommentOnPR(
@@ -116,11 +118,12 @@ export class ReviewService {
     prNumber: string,
     gitHubToken: string
   ) {
-    const repoOwnerToUse = repoOwner ?? this.configService.get('REPO_OWNER');
-    const repoNameToUse = repoName ?? this.configService.get('REPO_NAME');
+    const repoOwnerToUse =
+      repoOwner !== '' ? repoOwner : this.configService.get('REPO_OWNER');
+    const repoNameToUse =
+      repoName !== '' ? repoName : this.configService.get('REPO_NAME');
     const gitHubTokenToUse =
-      gitHubToken ?? this.configService.get('GITHUB_TOKEN');
-
+      gitHubToken !== '' ? gitHubToken : this.configService.get('GITHUB_TOKEN');
     const diffUrl = await this.getPullRequestDiff(
       prNumber,
       repoOwnerToUse,
