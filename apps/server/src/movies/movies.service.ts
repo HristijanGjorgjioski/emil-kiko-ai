@@ -57,7 +57,7 @@ export class MoviesService {
 
     const embedding = await this.getCachedEmbedding(combinedText);
 
-    await this.prisma.movie.create({
+    const created = await this.prisma.movie.create({
       data: {
         name: firstMovie.name,
         director: firstMovie.director,
@@ -65,12 +65,17 @@ export class MoviesService {
         cast: firstMovie.cast,
         plot: firstMovie.plot,
         setting: firstMovie.setting,
-        embedding: embedding,
-      } as any,
+      },
     });
+    await this.prisma.$executeRaw`
+    -- CreateExtension
+    UPDATE "Movie"
+    SET "embedding" = ${embedding}::vector
+    WHERE "id" = ${created.id}
+    `;
 
     // console.log(embedding);
-    return embedding;
+    return created.id;
   }
 
   async testCache() {
