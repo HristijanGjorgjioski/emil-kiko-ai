@@ -67,13 +67,14 @@ export class MoviesService {
         setting: firstMovie.setting,
       },
     });
-    await this.prisma.$executeRaw`
-    -- CreateExtension
-    UPDATE "Movie"
-    SET "embedding" = ${embedding}::vector
-    WHERE "id" = ${created.id}
-    `;
+    // await this.prisma.$executeRaw`
+    // -- CreateExtension
+    // UPDATE "Movie"
+    // SET "embedding" = (${embedding}::vector)
+    // WHERE "id" = ${created.id}
+    // `;
 
+    return embedding;
     // console.log(embedding);
     return created.id;
   }
