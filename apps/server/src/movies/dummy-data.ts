@@ -240,14 +240,6 @@ export const moviesDummyData = [
     plot: 'A boy who communicates with spirits seeks the help of a disheartened child psychologist.',
   },
   {
-    name: 'The Matrix',
-    genre: ['Action', 'Sci-Fi'],
-    director: 'The Wachowskis',
-    cast: ['Keanu Reeves', 'Laurence Fishburne', 'Carrie-Anne Moss'],
-    setting: 'Virtual reality world',
-    plot: 'A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.',
-  },
-  {
     name: 'The Exorcist',
     genre: ['Horror'],
     director: 'William Friedkin',
@@ -286,14 +278,6 @@ export const moviesDummyData = [
     cast: ['Leonardo DiCaprio', 'Tom Hardy', 'Domhnall Gleeson'],
     setting: 'American wilderness, 1820s',
     plot: 'A frontiersman on a fur trading expedition in the 1820s fights for survival after being mauled by a bear and left for dead by members of his own hunting team.',
-  },
-  {
-    name: 'The Social Network',
-    genre: ['Biography', 'Drama'],
-    director: 'David Fincher',
-    cast: ['Jesse Eisenberg', 'Andrew Garfield', 'Justin Timberlake'],
-    setting: 'United States',
-    plot: 'As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea.',
   },
   {
     name: 'The Lion King',
