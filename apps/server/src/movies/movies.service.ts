@@ -34,12 +34,10 @@ export class MoviesService {
       model: 'text-embedding-3-small',
       input: text,
     });
-
-    return new Float32Array(response.data[0].embedding);
+    return response.data[0].embedding;
   }
 
   async getCachedEmbedding(text: string) {
-    console.log('TEXT', text);
     if (this.cache.has(text)) {
       console.log('USING CACHED VALUE');
       return this.cache.get(text);
@@ -51,32 +49,44 @@ export class MoviesService {
   }
 
   async seedDB() {
-    const firstMovie = moviesDummyData[0];
-    const combinedText = `Name: ${firstMovie.name}, Director: ${firstMovie.director}, 
-    Genre: ${firstMovie.genre}, Cast: ${firstMovie.cast}, Plot: ${firstMovie.plot} Setting: ${firstMovie.setting}`;
+    for (const movie of moviesDummyData) {
+      const combinedText = `Name: ${movie.name}, Director: ${movie.director}, 
+      Genre: ${movie.genre}, Cast: ${movie.cast}, Plot: ${movie.plot} Setting: ${movie.setting}`;
 
-    const embedding = await this.getCachedEmbedding(combinedText);
+      const embedding = await this.getEmbedding(combinedText);
 
-    const created = await this.prisma.movie.create({
-      data: {
-        name: firstMovie.name,
-        director: firstMovie.director,
-        genre: firstMovie.genre,
-        cast: firstMovie.cast,
-        plot: firstMovie.plot,
-        setting: firstMovie.setting,
-      },
-    });
-    // await this.prisma.$executeRaw`
-    // -- CreateExtension
-    // UPDATE "Movie"
-    // SET "embedding" = (${embedding}::vector)
-    // WHERE "id" = ${created.id}
-    // `;
+      const created = await this.prisma.movie.create({
+        data: {
+          name: movie.name,
+          director: movie.director,
+          genre: movie.genre,
+          cast: movie.cast,
+          plot: movie.plot,
+          setting: movie.setting,
+        },
+      });
 
-    return embedding;
-    // console.log(embedding);
-    return created.id;
+      const embeddingForDb = JSON.stringify(embedding);
+      await this.prisma.$executeRaw`
+      UPDATE "Movie"
+      SET "embedding" = (${embeddingForDb}::vector)
+      WHERE "id" = ${created.id}
+      `;
+    }
+
+    return 'SEEDED!';
+  }
+
+  async similar(text: string) {
+    const embedding = await this.getCachedEmbedding(text);
+
+    const response = await this.prisma.$queryRaw`
+    SELECT "name" FROM "Movie"
+    ORDER BY embedding <-> ${JSON.stringify(embedding)}::vector
+    LIMIT 5
+    `;
+
+    return response;
   }
 
   async testCache() {

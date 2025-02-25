@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 
 @Controller('movies')
@@ -18,5 +18,10 @@ export class MoviesController {
   @Get('testCache')
   async testCache() {
     return this.moviesService.testCache();
+  }
+
+  @Get('similar/:text')
+  async similar(@Param('text') text: string) {
+    return this.moviesService.similar(text);
   }
 }
