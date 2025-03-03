@@ -20,4 +20,5 @@ model Movie {
   plot      String
   embedding Unsupported("vector(1536)")?
   tsv Unsupported("tsvector")?
+  @@index([tsv], type: Gin)
 }
