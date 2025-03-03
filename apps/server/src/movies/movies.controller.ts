@@ -1,9 +1,14 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
+
+  @Get('/:id')
+  async get(@Param('id') id: string) {
+    return this.moviesService.get(id);
+  }
 
   @Get('haiku')
   async generateHaiku() {
@@ -15,13 +20,21 @@ export class MoviesController {
     return this.moviesService.seedDB();
   }
 
-  @Get('testCache')
-  async testCache() {
-    return this.moviesService.testCache();
+  @Post('search')
+  async search(@Body() body: { text: string }) {
+    console.log('SEARCHING FOR: ', body.text);
+    return this.moviesService.search(body.text);
   }
 
-  @Get('similar/:text')
-  async similar(@Param('text') text: string) {
-    return this.moviesService.similar(text);
+  @Post('full-text-search')
+  async fullTextSearch(@Body() body: { text: string }) {
+    console.log('SEARCHING FOR: ', body.text);
+    return this.moviesService.fullTextSearch(body.text);
+  }
+
+  @Get('recommended/:id')
+  async recommended(@Param('id') id: string) {
+    console.log('recommendation for : ', id);
+    return this.moviesService.recommended(id);
   }
 }

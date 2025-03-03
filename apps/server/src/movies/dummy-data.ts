@@ -152,28 +152,12 @@ export const moviesDummyData = [
     plot: 'As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins who claimed he stole their idea.',
   },
   {
-    name: 'The Lion King',
-    genre: ['Animation', 'Adventure', 'Drama'],
-    director: 'Roger Allers, Rob Minkoff',
-    cast: ['Matthew Broderick', 'Jeremy Irons', 'James Earl Jones'],
-    setting: 'African savanna',
-    plot: 'Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.',
-  },
-  {
     name: 'Jurassic Park',
     genre: ['Adventure', 'Sci-Fi'],
     director: 'Steven Spielberg',
     cast: ['Sam Neill', 'Laura Dern', 'Jeff Goldblum'],
     setting: 'Isla Nublar',
     plot: 'During a preview tour, a theme park suffers a major power breakdown that allows its cloned dinosaur exhibits to run amok.',
-  },
-  {
-    name: 'The Avengers',
-    genre: ['Action', 'Adventure', 'Sci-Fi'],
-    director: 'Joss Whedon',
-    cast: ['Robert Downey Jr.', 'Chris Evans', 'Scarlett Johansson'],
-    setting: 'Various locations',
-    plot: "Earth's mightiest heroes must come together and learn to fight as a team if they are to stop the mischievous Loki and his alien army from enslaving humanity.",
   },
   {
     name: 'The Wizard of Oz',
@@ -286,14 +270,6 @@ export const moviesDummyData = [
     cast: ['Matthew Broderick', 'Jeremy Irons', 'James Earl Jones'],
     setting: 'African savanna',
     plot: 'Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.',
-  },
-  {
-    name: 'Jurassic Park',
-    genre: ['Adventure', 'Sci-Fi'],
-    director: 'Steven Spielberg',
-    cast: ['Sam Neill', 'Laura Dern', 'Jeff Goldblum'],
-    setting: 'Isla Nublar',
-    plot: 'During a preview tour, a theme park suffers a major power breakdown that allows its cloned dinosaur exhibits to run amok.',
   },
   {
     name: 'The Avengers',

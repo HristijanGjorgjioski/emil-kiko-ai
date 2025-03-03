@@ -44,7 +44,6 @@ export class MoviesService {
     }
     const embedding = await this.getEmbedding(text);
     this.cache.set(text, embedding);
-    console.log(embedding);
     return embedding;
   }
 
@@ -77,11 +76,12 @@ export class MoviesService {
     return 'SEEDED!';
   }
 
-  async similar(text: string) {
+  async search(text: string) {
     const embedding = await this.getCachedEmbedding(text);
 
     const response = await this.prisma.$queryRaw`
-    SELECT "name" FROM "Movie"
+    SELECT "id", "name", "genre", "director", "cast", "setting", "plot"
+    FROM "Movie"
     ORDER BY embedding <-> ${JSON.stringify(embedding)}::vector
     LIMIT 5
     `;
@@ -89,15 +89,57 @@ export class MoviesService {
     return response;
   }
 
-  async testCache() {
-    const input = '3';
-    const value = '100';
+  async fullTextSearch(text: string) {
+    const transformedText = text
+      .replace(/\s+or\s+/gi, ' | ') // Replace 'or' with the proper OR operator, with space handling
+      .replace(/\s+and\s+/gi, ' & ') // Replace 'and' with the proper AND operator, with space handling
+      .replace(/\s+not\s+/gi, ' !') // Replace 'not' with the proper NOT operator, with space handling
+      .trim(); // Trim extra spaces at the beginning and end
 
-    if (this.cache.has(input)) {
-      console.log('USING CACHED VALUE');
-      return this.cache.get(input);
+    try {
+      const response = await this.prisma.$queryRaw`
+        SELECT "id", "name", "genre", "director", "cast", "setting", "plot" FROM "Movie"
+        WHERE "tsv" @@ to_tsquery('english', ${transformedText})
+        LIMIT 5
+        `;
+
+      return response;
+    } catch (error) {
+      console.error(error);
+      return [];
     }
-    this.cache.set(input, value);
-    return value;
+  }
+
+  async get(id: string) {
+    const response = await this.prisma.movie.findUnique({
+      where: { id },
+    });
+
+    console.log(response);
+
+    return response;
+  }
+
+  async recommended(id: string) {
+    const movieEmbedding = await this.prisma.$queryRaw`
+    SELECT "embedding"::TEXT
+    FROM "Movie"
+    WHERE "id" = ${id}
+    `;
+
+    const embedding = movieEmbedding[0]?.embedding;
+    if (!embedding) {
+      throw new Error('Movie not found');
+    }
+
+    const response = await this.prisma.$queryRaw`
+    SELECT "id", "name", "genre", "director", "cast", "setting", "plot"
+    FROM "Movie"
+    WHERE "id" != ${id}
+    ORDER BY embedding <-> ${embedding}::vector
+    LIMIT 5
+    `;
+
+    return response;
   }
 }

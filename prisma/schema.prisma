@@ -1,7 +1,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -16,7 +16,8 @@ model Movie {
   genre     String[] 
   director  String
   cast      String[] 
-  setting   String
+  setting   String 
   plot      String
   embedding Unsupported("vector(1536)")?
+  tsv Unsupported("tsvector")?
 }
