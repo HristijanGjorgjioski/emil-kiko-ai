@@ -5,11 +5,6 @@ import { MoviesService } from './movies.service';
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
-  @Get('/:id')
-  async get(@Param('id') id: string) {
-    return this.moviesService.get(id);
-  }
-
   @Get('haiku')
   async generateHaiku() {
     return this.moviesService.haiku();
@@ -36,5 +31,10 @@ export class MoviesController {
   async recommended(@Param('id') id: string) {
     console.log('recommendation for : ', id);
     return this.moviesService.recommended(id);
+  }
+
+  @Get('/:id')
+  async get(@Param('id') id: string) {
+    return this.moviesService.get(id);
   }
 }

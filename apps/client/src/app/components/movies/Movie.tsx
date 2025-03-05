@@ -15,7 +15,7 @@ export const MovieList: React.FC<MovieListProps> = ({ movies }) => {
         <div
           key={movie.id}
           className={styles.movieCard}
-          onClick={() => router.push(`/search/${movie.id}`)}
+          onClick={() => router.push(`/movie/${movie.id}`)}
           style={{ cursor: 'pointer' }}
         >
           <h2 className={styles.movieTitle}>{movie.name}</h2>

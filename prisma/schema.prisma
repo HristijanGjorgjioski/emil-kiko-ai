@@ -22,3 +22,77 @@ model Movie {
   tsv Unsupported("tsvector")?
   @@index([tsv], type: Gin)
 }
+
+model Hospital {
+  id        String         @id @default(uuid())
+  name      String
+  location  String
+  capacity  Int?
+  type      HospitalType
+  services  HospitalService[]
+  doctors   Doctor[]
+  caregivers Caregiver[]
+  embedding Unsupported("vector(1536)")?
+}
+
+model Doctor {
+  id              String          @id @default(uuid())
+  name            String
+  specialization  Specialization
+  experienceYears Int?
+  hospitalId      String?         
+  hospital        Hospital?       @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  embedding       Unsupported("vector(1536)")?
+}
+
+model Caregiver {
+  id              String          @id @default(uuid())
+  name            String
+  role            CaregiverRole
+  experienceYears Int?
+  hospitalId      String?         
+  hospital        Hospital?       @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  embedding       Unsupported("vector(1536)")?
+}
+
+enum HospitalType {
+  GENERAL
+  SPECIALIZED
+  REHABILITATION
+  PSYCHIATRIC
+  CHILDREN
+  MATERNITY
+}
+
+enum Specialization {
+  CARDIOLOGY
+  ORTHOPEDICS
+  PEDIATRICS
+  ONCOLOGY
+  RADIOLOGY
+  DERMATOLOGY
+  NEUROLOGY
+  PSYCHIATRY
+}
+
+enum CaregiverRole {
+  NURSE
+  PHYSIOTHERAPIST
+  SOCIAL_WORKER
+  HOME_AIDE
+  MIDWIFE
+}
+
+enum HospitalService {
+  EMERGENCY_CARE
+  CARDIOLOGY
+  ONCOLOGY
+  NEUROLOGY
+  PEDIATRICS
+  ORTHOPEDIC_SURGERY
+  RADIOLOGY
+  PHYSICAL_THERAPY
+  PSYCHIATRY
+  MATERNITY_CARE
+  DERMATOLOGY
+}
