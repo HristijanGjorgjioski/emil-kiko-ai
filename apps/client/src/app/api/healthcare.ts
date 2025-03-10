@@ -1,6 +1,7 @@
 import {
-  Hospital,
+  HealthcareEntity,
   SearchResults,
+  Source,
 } from '../components/healthcare/healthcare.types';
 
 const API_BASE_URL =
@@ -17,22 +18,22 @@ export async function searchHealthcare(text: string) {
   return response;
 }
 
-export async function recommended(id: string) {
-  const result = await fetch(`${API_BASE_URL}/recommended/${id}`, {
+export async function recommended(id: string, source: Source) {
+  const result = await fetch(`${API_BASE_URL}/recommended/${source}/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
 
-  const response = (await result.json()) as Hospital[];
+  const response = (await result.json()) as SearchResults;
   return response;
 }
 
-export async function getHospital(id: string) {
-  const result = await fetch(`${API_BASE_URL}/${id}`, {
+export async function getHealthcareEntity(id: string, source: Source) {
+  const result = await fetch(`${API_BASE_URL}/get/${source}/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
 
-  const response = (await result.json()) as Hospital;
+  const response = (await result.json()) as HealthcareEntity;
   return response;
 }

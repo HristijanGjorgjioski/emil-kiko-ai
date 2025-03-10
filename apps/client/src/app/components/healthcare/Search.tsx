@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Hospital, SearchResults } from './healthcare.types';
-import { SearchResultsView } from './Hospital';
+import { HealthcareList } from './HealthcareList';
 import styles from './Search.module.css';
 import { searchHealthcare } from '../../api/healthcare';
 
@@ -43,7 +43,7 @@ export const SearchHealthcare = () => {
       </div>
       {message && <p className={styles.message}>{message}</p>}
       {searchResults ? (
-        <SearchResultsView searchResults={searchResults} />
+        <HealthcareList healthcareEntities={searchResults} />
       ) : (
         'No search results yet'
       )}

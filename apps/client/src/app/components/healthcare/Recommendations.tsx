@@ -1,31 +1,48 @@
 import { useEffect, useState } from 'react';
-import { Movie } from './healthcare.types';
-import { MovieList } from './Hospital';
-import { getMovie, recommended } from '../../api/movies';
+import {
+  Caregiver,
+  Doctor,
+  HealthcareEntity,
+  Hospital,
+  SearchResults,
+  Source,
+} from './healthcare.types';
+import { HealthcareList } from './HealthcareList';
+import { getHealthcareEntity, recommended } from '../../api/healthcare';
 
-type RecommendationsProps = {
+type HealthcareRecommendationsProps = {
   id: string;
+  source: Source;
 };
 
-export const Recommendations = ({ id }: RecommendationsProps) => {
-  const [recommendations, setRecommendations] = useState<Movie[]>([]);
-  const [movie, setMovie] = useState<Movie | null>(null);
+export const HealthcareRecommendations = ({
+  id,
+  source,
+}: HealthcareRecommendationsProps) => {
+  const [recommendations, setRecommendations] = useState<SearchResults>();
+  const [entity, setEntity] = useState<HealthcareEntity | null>(null);
   useEffect(() => {
     async function fetchData() {
-      console.log('id', id);
-      const fetchedMovie = await getMovie(id);
-      const fetchedRecommendations = await recommended(id);
-      setMovie(fetchedMovie);
+      const fetchedMainEntity = await getHealthcareEntity(id, source);
+      const fetchedRecommendations = await recommended(id, source);
+      setEntity(fetchedMainEntity);
       setRecommendations(fetchedRecommendations);
     }
     fetchData();
-  }, [id]);
+  }, [id, source]);
+  const mainEntityList = {
+    hospitals: source === 'Hospital' && entity ? [entity as Hospital] : [],
+    doctors: source === 'Doctor' && entity ? [entity as Doctor] : [],
+    caregivers: source === 'Caregiver' && entity ? [entity as Caregiver] : [],
+  };
   return (
     <>
-      MOVIE:
-      {movie && <MovieList movies={[movie]} />}
+      Healthcare entity:
+      {entity && <HealthcareList healthcareEntities={mainEntityList} />}
       RECOMMENDATIONS:
-      <MovieList movies={recommendations} />
+      {recommendations && (
+        <HealthcareList healthcareEntities={recommendations} />
+      )}
     </>
   );
 };

@@ -1,22 +1,22 @@
-import { Hospital, SearchResults } from './healthcare.types';
-import styles from './Hospital.module.css';
+import { SearchResults } from './healthcare.types';
+import styles from './HealthcareList.module.css';
 import { useRouter } from 'next/navigation';
 
-type SearchResultViewProps = {
-  searchResults: SearchResults;
+type HealthcareListProps = {
+  healthcareEntities: SearchResults;
 };
 
-export const SearchResultsView: React.FC<SearchResultViewProps> = ({
-  searchResults,
+export const HealthcareList: React.FC<HealthcareListProps> = ({
+  healthcareEntities,
 }) => {
   const router = useRouter();
   return (
     <div className={styles.hospitalContainer}>
-      {searchResults.hospitals.map((hospital) => (
+      {healthcareEntities.hospitals.map((hospital) => (
         <div
           key={`hospital-${hospital.id}`}
           className={styles.hospitalCard}
-          onClick={() => router.push(`/hospital/${hospital.id}`)}
+          onClick={() => router.push(`/healthcare/hospital/${hospital.id}`)}
           style={{ cursor: 'pointer' }}
         >
           <h2 className={styles.hospitalTitle}>Hospital: {hospital.name}</h2>
@@ -53,11 +53,11 @@ export const SearchResultsView: React.FC<SearchResultViewProps> = ({
           </p>
         </div>
       ))}
-      {searchResults.doctors.map((doctor) => (
+      {healthcareEntities.doctors.map((doctor) => (
         <div
           key={`doctor-${doctor.id}`}
           className={styles.hospitalCard}
-          onClick={() => router.push(`/hospital/${doctor.id}`)}
+          onClick={() => router.push(`/healthcare/doctor/${doctor.id}`)}
           style={{ cursor: 'pointer' }}
         >
           <h2 className={styles.hospitalTitle}>Doctor: {doctor.name}</h2>
@@ -69,11 +69,11 @@ export const SearchResultsView: React.FC<SearchResultViewProps> = ({
           </p>
         </div>
       ))}
-      {searchResults.caregivers.map((doctor) => (
+      {healthcareEntities.caregivers.map((doctor) => (
         <div
           key={`caregiver-${doctor.id}`}
           className={styles.hospitalCard}
-          onClick={() => router.push(`/hospital/${doctor.id}`)}
+          onClick={() => router.push(`/healthcare/caregiver/${doctor.id}`)}
           style={{ cursor: 'pointer' }}
         >
           <h2 className={styles.hospitalTitle}>Caregiver: {doctor.name}</h2>

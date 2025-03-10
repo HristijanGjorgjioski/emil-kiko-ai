@@ -82,3 +82,7 @@ export type SearchResults = {
   doctors: Doctor[];
   caregivers: Caregiver[];
 };
+
+export type Source = 'Hospital' | 'Doctor' | 'Caregiver';
+
+export type HealthcareEntity = Hospital | Doctor | Caregiver;

@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { healthcareData } from './dummy-data';
 import { PrismaService } from '../prisma/prisma.service';
 
+export type Source = 'Hospital' | 'Doctor' | 'Caregiver';
+
 @Injectable()
 export class HealthcareService {
   private readonly aiApiKey: string;
@@ -87,6 +89,7 @@ export class HealthcareService {
       const combinedText = `Name: ${hospital.name}, Location: ${hospital.location},
       Capacity: ${hospital.capacity}, Type: ${hospital.type}, Doctors: ${doctors}, Caregivers: ${caregivers}`;
       console.log(combinedText);
+
       const embedding = await this.getEmbedding(combinedText);
       const embeddingForDb = JSON.stringify(embedding);
       await this.prisma.$executeRaw`
@@ -125,9 +128,7 @@ export class HealthcareService {
     }
   }
 
-  async determineSearchableEntities(
-    text: string
-  ): Promise<('Hospital' | 'Doctor' | 'Caregiver')[]> {
+  async determineSearchableEntities(text: string): Promise<Source[]> {
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4-turbo',
       messages: [
@@ -158,7 +159,6 @@ export class HealthcareService {
     const searchableEntity = await this.determineSearchableEntities(text);
     console.log(searchableEntity);
     const embedding = await this.getCachedEmbedding(text);
-    console.log('embedding done');
 
     const subQueries = searchableEntity.map(
       (table) => `
@@ -179,31 +179,77 @@ export class HealthcareService {
       JSON.stringify(embedding)
     )) as {
       id: string;
-      source: string;
+      source: Source;
     }[];
 
     console.log(response);
     return this.getMultiple(response);
   }
 
-  async get(id: string) {
-    const response = await this.prisma.hospital.findUnique({
-      where: { id },
-    });
-
-    console.log(response);
+  async get(id: string, source: Source) {
+    console.log('GET', id, source);
+    const response =
+      source === 'Hospital'
+        ? await this.prisma.hospital.findUnique({
+            where: { id },
+            include: {
+              doctors: true,
+              caregivers: true,
+            },
+          })
+        : source === 'Doctor'
+        ? await this.prisma.doctor.findUnique({
+            where: { id },
+          })
+        : await this.prisma.caregiver.findUnique({
+            where: { id },
+          });
 
     return response;
+  }
+
+  async recommended(id: string, source: Source) {
+    /**
+     * TODO Emil: check how to make this work:
+    const healthcareEntity = await this.prisma.$queryRaw`
+    SELECT "embedding"::TEXT
+    FROM "${source}"
+    WHERE "id" = ${id}
+    `;
+     */
+
+    console.log('RECOMMENDED1', id, source);
+    const healthcareEntity = await this.prisma.$queryRawUnsafe(
+      `SELECT "embedding"::TEXT FROM "${source}" WHERE "id" = $1`,
+      id
+    );
+
+    const embedding = healthcareEntity[0]?.embedding;
+    if (!embedding) {
+      throw new Error('Healthcare entity not found');
+    }
+
+    const response = (await this.prisma.$queryRawUnsafe(
+      `SELECT "id"
+       FROM "${source}"
+       WHERE "id" != $1
+       ORDER BY "embedding" <-> $2::vector
+       LIMIT 5`,
+      id,
+      embedding
+    )) as { id: string }[];
+
+    return this.getMultiple(response.map((item) => ({ id: item.id, source })));
   }
 
   async getMultiple(
     data: {
       id: string;
-      source?: string;
+      source: Source;
     }[]
   ) {
     const hospitalIds = data
-      .filter((item) => item.source === 'Hospital' || !item.source)
+      .filter((item) => item.source === 'Hospital')
       .map((item) => item.id);
     const doctorIds = data
       .filter((item) => item.source === 'Doctor')
