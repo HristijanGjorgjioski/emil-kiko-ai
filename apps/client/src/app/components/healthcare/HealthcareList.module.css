@@ -23,4 +23,7 @@
 .hospitalProperty {
   font-size: 0.9rem;
   margin-bottom: 4px;
+  word-wrap: break-word; /* Ensures long words break onto the next line */
+  overflow-wrap: break-word; /* Alternative to word-wrap */
+  word-break: break-word; /* Ensures long words break correctly */
 }

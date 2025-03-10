@@ -59,6 +59,9 @@ export type Hospital = {
   services: HospitalService[]; // List of services provided by the hospital or clinic
   doctors: Doctor[]; // List of doctors working at the hospital or clinic
   caregivers: Caregiver[]; // List of caregivers working at the hospital or clinic
+  address?: string;
+  phone?: string;
+  email?: string;
 };
 
 export type Doctor = {
@@ -67,6 +70,9 @@ export type Doctor = {
   specialization: Specialization; // specialization of the doctor
   hospitalId: string | null; // ID of the hospital where the doctor works
   experienceYears: number; // Number of years of experience of the doctor
+  address?: string;
+  phone?: string;
+  email?: string;
 };
 
 export type Caregiver = {
@@ -75,6 +81,9 @@ export type Caregiver = {
   role: CaregiverRole; // Role of the caregiver
   experienceYears: number; // Number of years of experience of the caregiver
   hospitalId: string | null; // ID of the hospital where the caregiver works
+  address?: string;
+  phone?: string;
+  email?: string;
 };
 
 export type SearchResults = {

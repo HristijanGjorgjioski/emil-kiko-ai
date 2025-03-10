@@ -38,6 +38,61 @@ export class HealthcareService {
     return embedding;
   }
 
+  async seedAddressPhoneAndEmail() {
+    const mockAddresses = [
+      '12 Ocean View Drive, Hamilton, Bermuda',
+      "45 Palm Grove Road, St. George's, Bermuda",
+      '78 Lighthouse Lane, Somerset, Bermuda',
+      '23 Coral Bay Street, Warwick, Bermuda',
+      '56 Hibiscus Avenue, Devonshire, Bermuda',
+    ];
+    const doctors = await this.prisma.doctor.findMany();
+    const hospitals = await this.prisma.hospital.findMany();
+    const caregivers = await this.prisma.caregiver.findMany();
+
+    const randomAddress = () =>
+      mockAddresses[Math.floor(Math.random() * mockAddresses.length)];
+    const randomPhone = () =>
+      `+1-441-${Math.floor(1000000 + Math.random() * 9000000)}`; // Bermuda phone format
+    const randomEmail = (name: string) =>
+      `${name.replace(/\s+/g, '').toLowerCase()}@example.com`;
+
+    for (const doctor of doctors) {
+      await this.prisma.doctor.update({
+        where: { id: doctor.id },
+        data: {
+          address: randomAddress(),
+          phone: randomPhone(),
+          email: randomEmail(doctor.name),
+        },
+      });
+    }
+
+    for (const hospital of hospitals) {
+      await this.prisma.hospital.update({
+        where: { id: hospital.id },
+        data: {
+          address: randomAddress(),
+          phone: randomPhone(),
+          email: randomEmail(hospital.name),
+        },
+      });
+    }
+
+    for (const caregiver of caregivers) {
+      await this.prisma.caregiver.update({
+        where: { id: caregiver.id },
+        data: {
+          address: randomAddress(),
+          phone: randomPhone(),
+          email: randomEmail(caregiver.name),
+        },
+      });
+    }
+
+    console.log('Seeding completed!');
+  }
+
   async seedDB() {
     try {
       await this.prisma.hospital.createMany({
@@ -55,6 +110,7 @@ export class HealthcareService {
     }
 
     await this.seedEmbeddings();
+    await this.seedAddressPhoneAndEmail();
     return 'SEEDED!';
   }
 
