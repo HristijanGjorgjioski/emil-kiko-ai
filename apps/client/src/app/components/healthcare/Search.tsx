@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Hospital, SearchResults } from './healthcare.types';
+import { SearchResults } from './healthcare.types';
 import { HealthcareList } from './HealthcareList';
 import styles from './Search.module.css';
 import { searchHealthcare } from '../../api/healthcare';

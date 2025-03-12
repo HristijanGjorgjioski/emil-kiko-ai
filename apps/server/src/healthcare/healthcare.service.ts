@@ -5,6 +5,12 @@ import { healthcareData } from './dummy-data';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type Source = 'Hospital' | 'Doctor' | 'Caregiver';
+type FilteringClauses = {
+  searchableEntity: Source[];
+  Doctor: string;
+  Hospital: string;
+  Caregiver: string;
+};
 
 @Injectable()
 export class HealthcareService {
@@ -184,21 +190,46 @@ export class HealthcareService {
     }
   }
 
-  async determineSearchableEntities(text: string): Promise<Source[]> {
+  gpt4oMini = 'gpt-4o-mini' as const;
+  gpt4Turbo = 'gpt-4-turbo' as const;
+  // TODO Emil: with gpt4oMini "I am an addict" returns [] for searchableEntity.
+  async generateSQLFilteringClauses(text: string): Promise<FilteringClauses> {
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo',
+      model: this.gpt4oMini,
       messages: [
         {
           role: 'system',
-          content: `You are an AI assistant that classifies healthcare-related search queries into one or more categories: "Hospital", "Doctor", or "Caregiver". 
-          Analyze the given search input and determine which entities are most relevant. 
-          - Use "Hospital" when the query involves medical facilities, treatments, or specialized medical care.
-          - Use "Doctor" when the query is about medical professionals, diagnoses, or specific specializations.
-          - Use "Caregiver" when the query involves personal care, assistance, or non-medical support. Examples are a "nurse", "midwife", or "home aide".
-          - Use both "Hospital" and "Doctor" for any health problems that have unspecified requirements.
-          - If the query applies to multiple entities, include all relevant options.
-          - Return a JSON object with a single key "searchableEntity" containing an array of the appropriate entity names.
-          - Do NOT include any extra text, only the JSON response.`,
+          content: `You are an AI assistant that classifies healthcare-related search queries and generates SQL filtering clauses for a healthcare database. Your task is two-fold:
+
+1. **Entity Classification:** Analyze the given search query and determine which of the following entities are most relevant: "Hospital", "Doctor", and "Caregiver". Use these guidelines:
+   - Use "Hospital" if the query mentions medical facilities, hospital names, locations, treatments, or services.
+   - Use "Doctor" if the query mentions medical professionals, diagnoses, or specific specializations.
+   - Use "Caregiver" if the query involves personal care, assistance, or terms such as nurse, midwife, or home aide.
+   - Use both "Hospital" and "Doctor" for any health or other problem that cannot be categorized in any other way.
+   - If the query applies to multiple entities, include all relevant options.
+
+2. **SQL Filtering Clause Generation:** From the search query, extract filtering criteria that map to the database fields. For each entity, generate a valid SQL condition (always start with "WHERE", and include all needed keywords, like "AND", "BETWEEN", etc) that can be used to filter results:
+   - For the **Hospital** table, consider fields such as "location", "services", "type" and "capacity". For example, if the query mentions "New York", include a condition like "location ILIKE '%New York%'". If the query mentions "cardiology", consider a clause like "'CARDIOLOGY' = ANY(services)".
+   - For the **Doctor** table, consider the "specialization" field. For instance, if the query mentions "cardiology", include a condition like "specialization = 'CARDIOLOGY'".
+   - For the **Caregiver** table, consider the "role" field. For example, if the query mentions "nurse", include a condition like "role = 'NURSE'".
+   - For all 3 tables, include a clause that filters by the entity's name or any other relevant field. Only use parts of the query that clearly map to these fields; any other parts should be ignored for the filtering criteria. For names include only proper nouns.
+
+Only use parts of the query that clearly map to these fields; any other parts should be ignored for the filtering criteria. If no applicable filter is deduced for an entity, return an empty string for that entity's clause.
+
+Return a JSON object with exactly these four keys:
+- "searchableEntity": an array of the relevant entity names (e.g., "["Hospital", "Doctor"]")
+- "Doctor": a string containing the SQL filter for the Doctor table (or an empty string if none)
+- "Hospital": a string containing the SQL filter for the Hospital table (or an empty string if none)
+- "Caregiver": a string containing the SQL filter for the Caregiver table (or an empty string if none)
+
+For context, here is a brief summary of the relevant parts of the database schema:
+- **Hospital:** fields include "id", "name", "location", "capacity", "type" (one of these enum values: 'GENERAL', 'SPECIALIZED' ,'REHABILITATION', 'PSYCHIATRIC', 'CHILDREN', 'MATERNITY'), 
+and "services" (an array of these enum values: 'EMERGENCY_CARE', 'CARDIOLOGY', ONCOLOGY', 'NEUROLOGY', 'PEDIATRICS', 'ORTHOPEDIC_SURGERY', 'RADIOLOGY', 'PHYSICAL_THERAPY', 'PSYCHIATRY', 'MATERNITY_CARE', 'DERMATOLOGY').
+- **Doctor:** fields include "id", "name", "specialization", "experienceYears", and "hospitalId". Specialization is an enum with these possible values: 
+'CARDIOLOGY', 'ORTHOPEDICS', 'PEDIATRICS', 'ONCOLOGY', 'RADIOLOGY', 'DERMATOLOGY', 'NEUROLOGY', 'PSYCHIATRY'.
+- **Caregiver:** fields include "id", "name", "role", "experienceYears", and "hospitalId". Role is an enum with these possible values: 'NURSE', 'MIDWIFE', 'HOME_AIDE', 'CAREGIVER', 'PHYSIOTHERAPIST'.
+
+Do not include any additional text or explanation in your output—only return the JSON object with the specified keys.`,
         },
         {
           role: 'user',
@@ -208,18 +239,21 @@ export class HealthcareService {
       response_format: { type: 'json_object' },
     });
 
-    return JSON.parse(response.choices[0].message.content).searchableEntity;
+    return JSON.parse(response.choices[0].message.content);
   }
 
   async search(text: string) {
-    const searchableEntity = await this.determineSearchableEntities(text);
-    console.log(searchableEntity);
+    const sqlFilteringClauses = await this.generateSQLFilteringClauses(text);
+    console.log(sqlFilteringClauses);
     const embedding = await this.getCachedEmbedding(text);
 
-    const subQueries = searchableEntity.map(
+    console.log('HOSPITAL WHERE CLAUE', sqlFilteringClauses['Hospital']);
+
+    const subQueries = sqlFilteringClauses.searchableEntity.map(
       (table) => `
         (SELECT "id", embedding <-> $1::vector AS distance, '${table}' AS source
          FROM "${table}"
+         ${sqlFilteringClauses[table]}
          ORDER BY distance
          LIMIT 5)
       `
@@ -228,7 +262,7 @@ export class HealthcareService {
 
     const query = `${subQueries.join(' UNION ALL ')} ${annex}`;
 
-    console.log(query);
+    console.log('QUERY', query);
 
     const response = (await this.prisma.$queryRawUnsafe(
       query,
@@ -265,15 +299,6 @@ export class HealthcareService {
   }
 
   async recommended(id: string, source: Source) {
-    /**
-     * TODO Emil: check how to make this work:
-    const healthcareEntity = await this.prisma.$queryRaw`
-    SELECT "embedding"::TEXT
-    FROM "${source}"
-    WHERE "id" = ${id}
-    `;
-     */
-
     console.log('RECOMMENDED1', id, source);
     const healthcareEntity = await this.prisma.$queryRawUnsafe(
       `SELECT "embedding"::TEXT FROM "${source}" WHERE "id" = $1`,
