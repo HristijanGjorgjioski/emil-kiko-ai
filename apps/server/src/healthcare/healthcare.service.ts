@@ -209,10 +209,11 @@ export class HealthcareService {
    - If the query applies to multiple entities, include all relevant options.
 
 2. **SQL Filtering Clause Generation:** From the search query, extract filtering criteria that map to the database fields. For each entity, generate a valid SQL condition (always start with "WHERE", and include all needed keywords, like "AND", "BETWEEN", etc) that can be used to filter results:
-   - For the **Hospital** table, consider fields such as "location", "services", "type" and "capacity". For example, if the query mentions "New York", include a condition like "location ILIKE '%New York%'". If the query mentions "cardiology", consider a clause like "'CARDIOLOGY' = ANY(services)".
-   - For the **Doctor** table, consider the "specialization" field. For instance, if the query mentions "cardiology", include a condition like "specialization = 'CARDIOLOGY'".
-   - For the **Caregiver** table, consider the "role" field. For example, if the query mentions "nurse", include a condition like "role = 'NURSE'".
+   - For the **Hospital** table, consider fields such as "location", "services", "type" and "capacity". For example, if the query mentions "New York", include a condition like /"location" ILIKE '%New York%'/. If the query mentions "cardiology", consider a clause like /"CARDIOLOGY" = ANY(services)/.
+   - For the **Doctor** table, consider the "specialization" field. For instance, if the query mentions "cardiology", include a condition like /"specialization" = 'CARDIOLOGY'/.
+   - For the **Caregiver** table, consider the "role" field. For example, if the query mentions "nurse", include a condition like /"role" = 'NURSE'/.
    - For all 3 tables, include a clause that filters by the entity's name or any other relevant field. Only use parts of the query that clearly map to these fields; any other parts should be ignored for the filtering criteria. For names include only proper nouns.
+   - Always use double quotes for the column names.
 
 Only use parts of the query that clearly map to these fields; any other parts should be ignored for the filtering criteria. If no applicable filter is deduced for an entity, return an empty string for that entity's clause.
 
